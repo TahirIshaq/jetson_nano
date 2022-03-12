@@ -27,3 +27,8 @@ Possible cause: seems like tensorflow can not be directly installed on aarch64 a
 
 - After running a mediapipe container, bazel version error was encoutered
 - Tried to follow the recommended fix, but failed.
+
+# References
+- https://github.com/jiuqiant/mediapipe_python_aarch64 : Mediapipe binaries for nano
+- https://github.com/google/mediapipe: official mediapipe repo
+- https://github.com/PINTO0309/mediapipe-bin: mediapipe binaries for nano

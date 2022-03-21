@@ -1,0 +1,76 @@
+#!/bin/sh
+# Installing bazel
+echo "Installing Bazel"
+wget -O bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-arm64
+chmod +x bazel
+sudo mv bazel /usr/local/bin/
+
+# Downloading and installing dependencies
+sudo apt install -y python3-pip
+sudo apt install -y python3-dev
+sudo apt install -y cmake
+sudo apt install -y protobuf-compiler
+
+# Updating protobuf compiler
+echo "Downloading latest version of protobuf-compiler"
+wget -O protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-aarch_64.zip
+unzip -d protoc protoc.zip
+sudo mv protoc/bin/protoc /usr/local/bin/
+sudo mv protoc/include/google/ /usr/local/include/
+rm -r protoc
+rm protoc.zip
+
+# Updating gcc and g++ to avoid tensorflow error during mediapipe build process
+echo "Updating gcc and g++"
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install -y gcc-8 g++-8
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+sudo update-alternatives --config gcc
+
+# Downloading latest version mediapipe repository
+echo "Downloading mediapipe repo"
+git clone https://github.com/google/mediapipe.git ~/mediapipe
+cd ~/mediapipe
+git checkout -b jetson-nano-build v0.8.9
+cp ~/Documents/setup.py ~/mediapipe/
+cp ~/Documents/BUILD ~/mediapipe/third_party/BUILD
+
+# Remove unnecessary OpenCV modules and linker flags.
+sed -i -e "/\"imgcodecs\"/d;/\"calib3d\"/d;/\"features2d\"/d;/\"highgui\"/d;/\"video\"/d;/\"videoio\"/d" third_party/BUILD
+sed -i -e "/-ljpeg/d;/-lpng/d;/-ltiff/d;/-lImath/d;/-lIlmImf/d;/-lHalf/d;/-lIex/d;/-lIlmThread/d;/-lrt/d;/-ldc1394/d;/-lavcodec/d;/-lavformat/d;/-lavutil/d;/-lswscale/d;/-lavresample/d" third_party/BUILD
+
+# Build the package
+python3 setup.py gen_protos && python3 setup.py bdist_wheel
+
+# Rename the wheel file
+mv ~/mediapipe/dist/mediapipe-dev-cp36-cp36m-linux_aarch64.whl ~/mediapipe/dist/mediapipe-dev-0.8.9-cp36-cp36m-linux_aarch64.whl
+
+python3 -m pip install cython
+python3 -m pip install numpy
+
+# There was a jpeg error when installing pillow
+sudo apt-get -y install libjpeg-dev
+python3 -m pip install pillow
+
+# Since the old version of pip (9.01) has problem installing opencv
+# https://github.com/opencv/opencv-python#frequently-asked-questions
+python3 -m pip install --upgrade pip
+python3 -m pip install dataclasses
+python3 -m pip install ~/mediapipe/dist/mediapipe-dev-0.8.9-cp36-cp36m-linux_aarch64.whl 
+
+# Run example codes
+#https://google.github.io/mediapipe/solutions/solutions.html
+
+# Bazel clean to restart the build process from scratch (everything in the cache will be cleared)
+#bazel clean --expunge
+
+# Reference links
+#https://google.github.io/mediapipe/getting_started/python.html#building-mediapipe-python-package
+#https://google.github.io/mediapipe/getting_started/install.html
+#https://docs.bazel.build/versions/main/install-bazelisk.html
+#https://github.com/bazelbuild/bazelisk/releases
+#https://github.com/jiuqiant/mediapipe_python_aarch64
+#https://github.com/protocolbuffers/protobuf/releases
+#https://azrael.digipen.edu/~mmead/www/mg/update-compilers/index.html
+#https://github.com/opencv/opencv-python#frequently-asked-questions

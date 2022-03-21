@@ -1,13 +1,18 @@
 # jetson_nano
 Setting up mediapipe library on jetson nano 2gb
 
+# System setup
+I just followed the instruction from the official website `https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-2gb-devkit`
+
+1. Flashed the SD card with the latest operaiting system
+2. Configured the operating system using serial mode. Used wifi as the default communication method.
+	- Was able to connect to the router after several failed attempts despite the correct ssid and password. Connection attempts including manual setup were made.
+	- There were no problems when the setup was done using an external screen.
+
 # Install mediapipe using docker on nvidia jetson nano 2gb
 
 System Setup
-1. Flashed the SD card with the latest operaiting system from the official website
-2. Configured the operating system using serial mode. Used wifi as the default communication method.
-	- Was able to connect to the router after several failed attempts despite the correct ssid and password. Connection attempts including manual setup were made
-3. Fixed docker permission issue. Containers can now run without root permission.
+Fixed docker permission issue. Containers can now run without root permission.
 
 Mediapie
 1. Cloned the latest mediapipe repository
